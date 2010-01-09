@@ -266,7 +266,7 @@ class CFA635Display(Generic.SerialCharacterDisplay):
 
   def _WritePacket(self, packet):
     data = packet.Pack()
-    self._logger.info('Writing packet bytes: %s' % repr(data))
+    self._logger.debug('Writing packet bytes: %s' % repr(data))
     self._serial_handle.write(data)
     self._DrainPackets()
 
@@ -280,7 +280,7 @@ class CFA635Display(Generic.SerialCharacterDisplay):
       timeout = 0
 
   def _WaitForPacket(self, timeout=0.250):
-    self._logger.info('Waiting for packet timeout=%f' % timeout)
+    self._logger.debug('Waiting for packet timeout=%f' % timeout)
     rr, _, _ = select.select([self._serial_handle], [], [], timeout)
     if rr:
       return self._ReadPacket()
@@ -288,7 +288,7 @@ class CFA635Display(Generic.SerialCharacterDisplay):
       self._logger.error('No response!')
 
   def _HandleIncomingPacket(self, packet):
-    self._logger.info('Got packet: %s' % packet)
+    self._logger.debug('Got packet: %s' % packet)
 
   def _ReadPacket(self):
     command, data_length = struct.unpack('BB', self._serial_handle.read(2))
@@ -299,7 +299,7 @@ class CFA635Display(Generic.SerialCharacterDisplay):
       self._logger.error('Invalid data length: %i' % data_length)
       return
 
-    self._logger.info('Response: %x %x %x' % (command_type, command_value, data_length))
+    self._logger.debug('Response: %x %x %x' % (command_type, command_value, data_length))
     bytes = self._serial_handle.read(data_length)
     crc = self._serial_handle.read(2)
 
@@ -326,7 +326,7 @@ class CFA635Display(Generic.SerialCharacterDisplay):
     self._WritePacket(SetCursorPosPacket(col=col, row=row))
 
   def WriteData(self, data, row, col):
-    self._logger.info('Writing data: %s' % data)
+    self._logger.debug('Writing data: %s' % data)
     outstr = data.translate(self._TRANSLATION_TABLE)
     self._WritePacket(WriteDataPacket(col=col, row=row, data=outstr))
 
