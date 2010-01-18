@@ -1,31 +1,33 @@
 class Widget:
-  def __init__(self):
-    pass
+  def __init__(self, frame):
+    self._frame = frame
 
-  def GetString(self):
+  def Paint(self):
     return ''
-
-  def Update(self):
-    return self._GetString()
 
 
 class LineWidget(Widget):
-  def __init__(self, contents='', prefix='', postfix=''):
-    Widget.__init__(self)
+  def __init__(self, frame, contents='', prefix='', postfix=''):
+    Widget.__init__(self, frame)
     self._contents = contents
     self._prefix = prefix
     self._postfix = postfix
 
-  def _GetString(self):
-    ret = self._prefix + self._contents + self._postfix
-    return ret
+  def Paint(self):
+    cols = self._frame.cols()
+    outer_len = len(self._prefix) + len(self._postfix)
+    inner_len = cols - outer_len
+    contents = self._contents[:inner_len]
+    contents += ' '*(inner_len - len(contents))
+    result = self._prefix + contents + self._postfix
+    return result[:cols]
 
   def set_contents(self, s):
     self._contents = s
   def contents(self): return self._contents
 
   def set_prefix(self, s):
-    self._prefix = prefix
+    self._prefix = s
   def prefix(self): return self._prefix
 
   def set_postfix(self, s):

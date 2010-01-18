@@ -7,6 +7,7 @@ import string
 import struct
 import time
 
+from lcdui import common
 from lcdui.core import crc16
 from lcdui.core import cstruct
 from lcdui.devices import Generic
@@ -19,6 +20,30 @@ FRAME_TYPE_HOST_COMMAND = 0x00
 FRAME_TYPE_DEVICE_RESPONSE = 0x01
 FRAME_TYPE_DEVICE_REPORT = 0x02
 FRAME_TYPE_DEVICE_ERROR = 0x03
+
+CFA_SYMBOLS = {
+  common.SYMBOL.ARROW_UP: '\xde',
+  common.SYMBOL.ARROW_DOWN: '\xe0',
+  common.SYMBOL.ARROW_LEFT: '\xe1',
+  common.SYMBOL.ARROW_RIGHT: '\xdf',
+
+  common.SYMBOL.TRIANGLE_UP: '\x1a',
+  common.SYMBOL.TRIANGLE_DOWN: '\x1b',
+  common.SYMBOL.TRIANGLE_LEFT: '\x11',
+  common.SYMBOL.TRIANGLE_RIGHT: '\x10',
+
+  common.SYMBOL.PROGBAR_1: '\xd4',
+  common.SYMBOL.PROGBAR_2: '\xd3',
+  common.SYMBOL.PROGBAR_3: '\xd2',
+  common.SYMBOL.PROGBAR_4: '\xd1',
+  common.SYMBOL.PROGBAR_5: '\xd0',
+
+  common.SYMBOL.MENU_CURSOR: '\x10',  # triangle right
+  common.SYMBOL.MENU_LIST_UP: '\xde',  # arrow up
+  common.SYMBOL.MENU_LIST_DOWN: '\xe0', # arrow down
+
+  common.SYMBOL.FRAME_BACK: '\x14', # double left arrow
+}
 
 ### Packet definitions
 
@@ -242,8 +267,8 @@ class ReadGPIOPacket(CFA635Packet):
 class CFA635Display(Generic.SerialCharacterDisplay):
 
   # These characters do not correspond to their ASCII codes
-  _TRANSLATION_TABLE = string.maketrans(r'[\]{|<=>_$',
-      '\xfa\xfb\xfc\xfd\xfe\x3c\x3d\x3e\xc4\xa2')
+  _TRANSLATION_TABLE = string.maketrans(r'[\]{|<=>_$^',
+      '\xfa\xfb\xfc\xfd\xfe\x3c\x3d\x3e\xc4\xa2\x1d')
 
   def __init__(self, port, baudrate=115200):
     Generic.SerialCharacterDisplay.__init__(self, port, baudrate)
@@ -335,6 +360,9 @@ class CFA635Display(Generic.SerialCharacterDisplay):
       start = i*self.cols()
       end = start+self.cols()
       self.WriteData(data=buf[start:end].tostring(), row=i, col=0)
+
+  def GetSymbol(self, key, alt=None):
+    return CFA_SYMBOLS.get(key, alt)
 
   ### Nonstandard public functions
   def Reset(self):

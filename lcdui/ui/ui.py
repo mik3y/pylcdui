@@ -5,7 +5,7 @@ import time
 
 class LcdUi:
   def __init__(self, lcd):
-    self._lcd = lcd 
+    self._lcd = lcd
     self._frame_stack = []
 
     self._last_paint = None
@@ -15,6 +15,12 @@ class LcdUi:
     self._is_idle = False
 
     self._quit = threading.Event()
+
+  def rows(self):
+    return self._lcd.rows()
+
+  def cols(self):
+    return self._lcd.cols()
 
   def Activity(self):
     self._last_activity = datetime.datetime.now()
@@ -55,7 +61,7 @@ class LcdUi:
       return None
 
   def FrameFactory(self, frame_cls, **kwargs):
-    return frame_cls(rows=self._lcd.rows(), cols=self._lcd.cols(), **kwargs)
+    return frame_cls(ui=self)
 
   def MainLoop(self):
     self._lcd.ClearScreen()
@@ -73,6 +79,9 @@ class LcdUi:
 
     # repaint as neede
     self._DoRepaint()
+
+  def GetSymbol(self, name, default=None):
+    return self._lcd.GetSymbol(name, default)
 
   def _DoRepaint(self):
     current_frame = self.CurrentFrame()
