@@ -14,10 +14,10 @@ ui = ui.LcdUi(device)
 
 f = ui.FrameFactory(frame.Frame)
 
-line1 = f.WidgetFactory(widget.LineWidget, row=0, col=0)
+line1 = f.BuildWidget(widget.LineWidget, row=0, col=0)
 line1.set_contents("Hello, world!")
 
-line2 = f.WidgetFactory(widget.LineWidget, row=3, col=10, span=6)
+line2 = f.BuildWidget(widget.LineWidget, row=3, col=10, span=6)
 line2.set_contents("cutoffXXX")
 
 ui.PushFrame(f)
@@ -48,10 +48,10 @@ for i in xrange(6):
 f = ui.FrameFactory(frame.MultiFrame)
 
 f1 = ui.FrameFactory(frame.Frame)
-line1 = f1.WidgetFactory(widget.LineWidget, row=0, col=0, contents="Page 1")
+line1 = f1.BuildWidget(widget.LineWidget, row=0, col=0, contents="Page 1")
 
 f2 = ui.FrameFactory(frame.Frame)
-line2 = f2.WidgetFactory(widget.LineWidget, row=0, col=0, contents="Page 2")
+line2 = f2.BuildWidget(widget.LineWidget, row=0, col=0, contents="Page 2")
 
 f.AddFrame(f1, 5)
 f.AddFrame(f2, 2)

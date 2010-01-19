@@ -7,15 +7,17 @@ import time
 class Frame(object):
   def __init__(self, ui):
     self._ui = ui
-    self._widgets = set()
+    self._widgets = {}
     self._position = {}
     self._span = {}
     self._screen_buffer = ScreenBuffer(self.rows(), self.cols())
     self.onInitialize()
 
-  def WidgetFactory(self, widget_cls, row, col, span=None, **kwargs):
+  def BuildWidget(self, widget_cls, name=None, row=0, col=0, span=None, **kwargs):
     widget_obj = widget_cls(self, **kwargs)
-    self.AddWidget(widget_obj, row, col, span)
+    if name is None:
+      name = widget_obj
+    self.AddWidget(widget_obj, name, row, col, span)
     return widget_obj
 
   def rows(self):
@@ -29,23 +31,27 @@ class Frame(object):
   def onInitialize(self):
     pass
 
-  def AddWidget(self, widget_obj, row=0, col=0, span=None):
+  def AddWidget(self, widget_obj, name, row=0, col=0, span=None):
     """Adds a widget to the current frame.
 
     Args:
       widget_obj: the widget to be added
+      name: the name of the widget
       row: the row position of the widget
       col: the column position of the widget
       span: the character mask for the widget (or None if no mask)
     """
-    self._widgets.add(widget_obj)
-    self._position[widget_obj] = (row, col)
-    self._span[widget_obj] = span or max(0, self.cols() - col)
+    self._widgets[name] = widget_obj
+    self._position[name] = (row, col)
+    self._span[name] = span or max(0, self.cols() - col)
 
-  def RemoveWidget(self, widget_obj):
+  def GetWidget(self, name):
+    return self._widgets.get(name)
+
+  def RemoveWidget(self, name):
     """Removes the widget with the given name."""
-    self._widgets.remove(widget_obj)
-    del self._position[widget_obj]
+    del self._widgets[name]
+    del self._position[name]
     del self._span[name]
 
   def Paint(self):
@@ -67,7 +73,7 @@ class MultiFrame(Frame):
     self._current_frame = None
     self._index = 0
 
-  def AddWidget(self, name, widget_obj, row=0, col=0, span=None):
+  def AddWidget(self, widget_obj, name, row=0, col=0, span=None):
     raise NotImplementedError
 
   def GetWidget(self, name):
@@ -117,12 +123,12 @@ class MenuFrame(Frame):
     self._window_pos = 0
     self._window_size = self.rows() - 1
 
-    self._title_widget = self.WidgetFactory(widget.LineWidget, row=0, col=0)
+    self._title_widget = self.BuildWidget(widget.LineWidget, row=0, col=0)
     self.setTitle('')
 
     self._item_widgets = []
     for i in xrange(self._window_size):
-      w = self.WidgetFactory(widget.LineWidget, row=i+1, col=0)
+      w = self.BuildWidget(widget.LineWidget, row=i+1, col=0)
       self._item_widgets.append(w)
     self._rebuildMenu()
 
