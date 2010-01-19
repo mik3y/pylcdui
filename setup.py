@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name = "pylcdui",
-    version = "0.5.2",
+    version = "0.5.3",
     description = "Python character LCD library",
     author = "mike wakerly",
     author_email = "opensource@hoho.com",
