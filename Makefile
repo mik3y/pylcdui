@@ -3,4 +3,4 @@ install:
 
 clean:
 	find . -name "*.pyc" | xargs rm -f
-	rm -rf build/
+	rm -rf build/ dist/
