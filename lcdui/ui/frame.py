@@ -2,51 +2,110 @@ from lcdui import common
 from lcdui.ui import widget
 
 import array
+import time
 
 class Frame(object):
   def __init__(self, ui):
     self._ui = ui
-    self._widget = {}
+    self._widgets = set()
     self._position = {}
     self._span = {}
     self._screen_buffer = ScreenBuffer(self.rows(), self.cols())
     self.onInitialize()
 
+  def WidgetFactory(self, widget_cls, row, col, span=None, **kwargs):
+    widget_obj = widget_cls(self, **kwargs)
+    self.AddWidget(widget_obj, row, col, span)
+    return widget_obj
+
   def rows(self):
+    """Returns the number of rows in the frame."""
     return self._ui.rows()
 
   def cols(self):
+    """Returns the number of columns in the frame."""
     return self._ui.cols()
 
   def onInitialize(self):
     pass
 
-  def AddWidget(self, name, widget_obj, row=0, col=0, span=None):
-    self._widget[name] = widget_obj
-    self._position[name] = (row, col)
-    self._span[name] = span or max(0, self.cols() - col)
+  def AddWidget(self, widget_obj, row=0, col=0, span=None):
+    """Adds a widget to the current frame.
 
-  def GetWidget(self, name):
-    return self._widget.get(name)
+    Args:
+      widget_obj: the widget to be added
+      row: the row position of the widget
+      col: the column position of the widget
+      span: the character mask for the widget (or None if no mask)
+    """
+    self._widgets.add(widget_obj)
+    self._position[widget_obj] = (row, col)
+    self._span[widget_obj] = span or max(0, self.cols() - col)
 
-  def RemoveWidget(self, name):
-    del self._widget[name]
-    del self._position[name]
+  def RemoveWidget(self, widget_obj):
+    """Removes the widget with the given name."""
+    self._widgets.remove(widget_obj)
+    del self._position[widget_obj]
     del self._span[name]
 
   def Paint(self):
-    for widgetname, w in self._widget.iteritems():
+    """Causes a repaint to happen, updating any internal buffers."""
+    for w in self._widgets:
       outstr = w.Paint()
-      row, col = self._position[widgetname]
-      span = self._span[widgetname]
+      row, col = self._position[w]
+      span = self._span[w]
       self._screen_buffer.Write(array.array('c', outstr), row, col, span)
     return self._screen_buffer
 
-  def SwitchInEvent(self):
-    pass
 
-  def SwitchOutEvent(self):
-    pass
+class MultiFrame(Frame):
+  def __init__(self, ui):
+    Frame.__init__(self, ui)
+    self._inner_frames = []
+    self._display_time = {}
+    self._last_rotate = None
+    self._current_frame = None
+    self._index = 0
+
+  def AddWidget(self, name, widget_obj, row=0, col=0, span=None):
+    raise NotImplementedError
+
+  def GetWidget(self, name):
+    raise NotImplementedError
+
+  def RemoveWidget(self, name):
+    raise NotImplementedError
+
+  def AddFrame(self, frame, display_time):
+    self._inner_frames.append(frame)
+    self._display_time[frame] = display_time
+
+  def RemoveFrame(self, frame):
+    self._inner_frames.remove(frame)
+    del self._display_time[frame]
+
+  def Paint(self):
+    if not self._inner_frames:
+      return ''
+
+    if self._current_frame is None:
+      self._index = 0
+      self._current_frame = self._inner_frames[self._index]
+
+    now = time.time()
+    if self._last_rotate:
+      active_time = now - self._last_rotate
+    else:
+      self._last_rotate = now
+      active_time = 0
+
+    if len(self._inner_frames) > 1:
+      max = self._display_time[self._current_frame]
+      if active_time > max:
+        self._index = (self._index + 1) % len(self._inner_frames)
+        self._last_rotate = now
+    self._current_frame = self._inner_frames[self._index]
+    return self._current_frame.Paint()
 
 
 class MenuFrame(Frame):
@@ -58,15 +117,13 @@ class MenuFrame(Frame):
     self._window_pos = 0
     self._window_size = self.rows() - 1
 
-    self._title_widget = widget.LineWidget(frame=self)
-    self.AddWidget('title', self._title_widget, row=0, col=0)
+    self._title_widget = self.WidgetFactory(widget.LineWidget, row=0, col=0)
     self.setTitle('')
 
     self._item_widgets = []
     for i in xrange(self._window_size):
-      w = widget.LineWidget(frame=self, prefix=' |', postfix='| ')
+      w = self.WidgetFactory(widget.LineWidget, row=i+1, col=0)
       self._item_widgets.append(w)
-      self.AddWidget('item%i' % i, w, row=i+1, col=0)
     self._rebuildMenu()
 
   def addItem(self, key, value):
@@ -110,17 +167,13 @@ class MenuFrame(Frame):
         w.set_prefix(symbol_cursor + '|')
       else:
         w.set_prefix(' |')
+      w.set_postfix('| ')
 
     if self._window_pos > 0:
       self._item_widgets[0].set_postfix('|' + symbol_up)
-    else:
-      self._item_widgets[0].set_postfix('| ')
 
     if (self._window_pos + self._window_size) < len(self._items):
       self._item_widgets[-1].set_postfix('|' + symbol_down)
-    else:
-      self._item_widgets[-1].set_postfix('| ')
-
 
   def _updateWindowPos(self):
     self._window_pos = self._cursor_pos - (self._cursor_pos % self._window_size)
