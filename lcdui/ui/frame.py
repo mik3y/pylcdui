@@ -56,10 +56,10 @@ class Frame(object):
 
   def Paint(self):
     """Causes a repaint to happen, updating any internal buffers."""
-    for w in self._widgets:
+    for name, w in self._widgets.iteritems():
       outstr = w.Paint()
-      row, col = self._position[w]
-      span = self._span[w]
+      row, col = self._position[name]
+      span = self._span[name]
       self._screen_buffer.Write(array.array('c', outstr), row, col, span)
     return self._screen_buffer
 
