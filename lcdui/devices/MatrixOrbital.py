@@ -34,7 +34,7 @@ class MatrixOrbitalDisplay(Generic.SerialCharacterDisplay):
 
   def BacklightEnable(self, enable):
     if enable:
-      self._WriteCommand('\x42')
+      self._WriteCommand('\x42\x00')
     else:
       self._WriteCommand('\x46')
 
