@@ -11,7 +11,7 @@ class LcdUi:
     self._last_paint = None
     self._key_events = Queue.Queue()
     self._last_activity = datetime.datetime.now()
-    self._max_idle = datetime.timedelta(max_idle)
+    self._max_idle = datetime.timedelta(seconds=max_idle)
     self._is_idle = False
 
     self._quit = threading.Event()
