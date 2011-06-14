@@ -1,3 +1,5 @@
+from collections import deque
+
 from lcdui import common
 from lcdui.ui import widget
 
@@ -107,11 +109,9 @@ class TextFrame(Frame):
 class MultiFrame(Frame):
   def __init__(self, ui):
     Frame.__init__(self, ui)
-    self._inner_frames = []
+    self._inner_frames = deque()
     self._display_time = {}
     self._last_rotate = None
-    self._current_frame = None
-    self._index = 0
 
   def AddWidget(self, widget_obj, name, row=0, col=0, span=None):
     raise NotImplementedError
@@ -121,6 +121,9 @@ class MultiFrame(Frame):
 
   def RemoveWidget(self, name):
     raise NotImplementedError
+
+  def frames(self):
+    return self._inner_frames
 
   def AddFrame(self, frame, display_time):
     self._inner_frames.append(frame)
@@ -134,10 +137,6 @@ class MultiFrame(Frame):
     if not self._inner_frames:
       return ''
 
-    if self._current_frame is None:
-      self._index = 0
-      self._current_frame = self._inner_frames[self._index]
-
     now = time.time()
     if self._last_rotate:
       active_time = now - self._last_rotate
@@ -145,13 +144,13 @@ class MultiFrame(Frame):
       self._last_rotate = now
       active_time = 0
 
+    curr = self._inner_frames[0]
     if len(self._inner_frames) > 1:
-      max = self._display_time[self._current_frame]
-      if active_time > max:
-        self._index = (self._index + 1) % len(self._inner_frames)
+      max_time = self._display_time[curr]
+      if active_time > max_time:
+        self._inner_frames.rotate(-1)
         self._last_rotate = now
-    self._current_frame = self._inner_frames[self._index]
-    return self._current_frame.Paint()
+    return curr.Paint()
 
 
 class MenuFrame(Frame):
@@ -241,6 +240,7 @@ class MenuFrame(Frame):
 
   def onLoad(self, lcd):
     pass
+
 
 class ScreenBuffer:
    def __init__(self, rows, cols):
