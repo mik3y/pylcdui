@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "pylcdui",
-    version = "0.5.7",
+    version = "0.5.8",
     description = "Library for CrystalFontz and Matrix-Orbital LCD displays",
     author = "mike wakerly",
     author_email = "opensource@hoho.com",
