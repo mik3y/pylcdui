@@ -64,6 +64,46 @@ class Frame(object):
     return self._screen_buffer
 
 
+class TextFrame(Frame):
+  def __init__(self, ui, title='', lines=None):
+    Frame.__init__(self, ui)
+    self._title = title
+    if lines is None:
+      lines = []
+    self._lines = lines
+    self._UpdateText()
+
+  def _UpdateText(self):
+    lineno = 0
+    if self._title:
+      title_text = '_' + self._title
+      lineno = 1
+      if len(title_text) < (self.cols() - 1):
+        title_text += '_'*(self.cols() - len(title_text) - 1)
+      self.BuildWidget(widget.LineWidget, name='line0',
+          row=0, col=0, contents=title_text)
+
+    idx = 0
+    for lineno in xrange(lineno, self.rows()):
+      if idx < len(self._lines):
+        content = self._lines[idx]
+      else:
+        content = ''
+      idx += 1
+
+      line_name = 'line%i' % lineno
+      self.BuildWidget(widget.LineWidget, 'line%i' % lineno,
+          row=lineno, col=0, contents=content)
+
+  def SetTitle(self, title):
+    self._title = title
+    self._UpdateText()
+
+  def AddLine(self, line):
+    self._lines.append(str(line))
+    self._UpdateText()
+
+
 class MultiFrame(Frame):
   def __init__(self, ui):
     Frame.__init__(self, ui)

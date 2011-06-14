@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from distribute_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup, find_packages
 
 setup(
     name = "pylcdui",
-    version = "0.5.6",
+    version = "0.5.7",
     description = "Library for CrystalFontz and Matrix-Orbital LCD displays",
     author = "mike wakerly",
     author_email = "opensource@hoho.com",
