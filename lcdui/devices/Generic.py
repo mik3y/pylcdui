@@ -1,4 +1,8 @@
-import serial
+try:
+  import serial
+  HAVE_SERIAL = True
+except ImporError:
+  HAVE_SERIAL = False
 
 from lcdui import common
 from lcdui.devices import Interfaces
@@ -10,6 +14,8 @@ class InvalidPositionError(Exception):
 class SerialCharacterDisplay(Interfaces.ICharacterDisplay):
   """A character display that is driven by a serial port."""
   def __init__(self, port, baudrate=115200):
+    if not HAVE_SERIAL:
+      raise ImportError('pyserial is required but not installed (try pip install pyserial?)')
     self._serial_handle = serial.Serial(port=port, baudrate=baudrate)
 
 
