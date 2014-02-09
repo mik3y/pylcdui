@@ -171,6 +171,10 @@ class MenuFrame(Frame):
       self._item_widgets.append(w)
     self._rebuildMenu()
 
+  def showBack(self, enable):
+    self._show_back = enable
+    self._rebuildMenu()
+
   def addItem(self, key, value):
     self._items.append((key, value))
     self._rebuildMenu()
